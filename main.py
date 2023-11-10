@@ -2,7 +2,35 @@ from tkinter import *
 import tkinter.ttk as ttk
 
 def about_us():
-    l1 = Label(w,text="Step into the realm of system dynamics with our \n \
+    w.destroy()
+    w2 = Tk()
+    w2.geometry( "%dx%d+%d+%d" % ( 800 , 750 , 300 , 50 ) )
+    w2.title("About Us" )
+    w2.resizable(True,True)
+    
+    #Create a Main Frame 
+    main_frame = Frame( w2 )
+    main_frame.pack( fill= BOTH , expand = 1 )
+    
+    #Create a Canvas 
+    my_canvas = Canvas( main_frame )
+    my_canvas.pack( side =LEFT , fill =BOTH , expand = 1 )
+    
+    #Add a Scrollbar to the Canvas
+    my_scrollbar = ttk.Scrollbar( main_frame , orient = VERTICAL , command = my_canvas.yview )
+    my_scrollbar.pack( side =RIGHT , fill = Y )
+    
+    #Configure the Canvas
+    my_canvas.configure( yscrollcommand = my_scrollbar.set )
+    my_canvas.bind( '<Configure>' , lambda e : my_canvas.configure( scrollregion = my_canvas.bbox("all") ) ) 
+    
+    #Create another frame inside the canvas 
+    second_frame = Frame( my_canvas )
+    
+    #Add that new frame to a window in the canvas
+    my_canvas.create_window( (0,0) , window=second_frame , anchor="nw" )
+    
+    l1 = Label( second_frame , justify="left" ,  text="Step into the realm of system dynamics with our \n \
                    Single Server Simulation Application, a sophisticated \n \
                    tool meticulously crafted by the talented developers \n \
                    Ali Sojoudizadeh and Nima Afkham. This application is your \n \
@@ -31,7 +59,7 @@ def about_us():
                     analysis. Take the plunge into the world of single server dynamics \n \
                     with confidence, knowing that you have a powerful tool at \n \
                     your fingertips, courtesy of these talented developers." \
-                    ,font="tahoma 12 italic" , justify=CENTER , bg="white" , fg="black" )
+                    ,font="arial 28 normal"  , bg="white" , fg="black" )
     l1.pack()
 
 def atti_import():
@@ -44,6 +72,7 @@ def confirm():
     pass
 
 def new_project():
+    w.destroy()
     w2 = Tk()
     w2.geometry( "%dx%d+%d+%d" % ( 700 , 400 , 450 , 200 ) )
     w2.title("Import Data " )
@@ -66,7 +95,6 @@ def new_project():
     b3.place( x = 450 , y = 350 )
     
     w2.mainloop()
-    
 
 w = Tk()
 w.geometry( "%dx%d+%d+%d" % ( 650 , 650 , 100 , 100 ) )
@@ -86,6 +114,4 @@ fr.add_command(label="Show Tables")
 fr.add_command(label="Show Charts")
 fr.add_command(label="Show Statistics")
 fx.add_command(label="About Us",command=about_us )
-
-
 w.mainloop()
