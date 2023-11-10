@@ -30,7 +30,7 @@ def about_us():
     #Add that new frame to a window in the canvas
     my_canvas.create_window( (0,0) , window=second_frame , anchor="nw" )
     
-    l1 = Label( second_frame , justify="left" ,  text="Step into the realm of system dynamics with our \n \
+    l1 = Label( second_frame  ,  text="Step into the realm of system dynamics with our \n \
                    Single Server Simulation Application, a sophisticated \n \
                    tool meticulously crafted by the talented developers \n \
                    Ali Sojoudizadeh and Nima Afkham. This application is your \n \
@@ -59,7 +59,7 @@ def about_us():
                     analysis. Take the plunge into the world of single server dynamics \n \
                     with confidence, knowing that you have a powerful tool at \n \
                     your fingertips, courtesy of these talented developers." \
-                    ,font="arial 28 normal"  , bg="white" , fg="black" )
+                    ,font="arial 16 normal"  , bg="white" , fg="black" )
     l1.pack()
 
 def atti_import():
