@@ -1,7 +1,35 @@
 from tkinter import *
 import tkinter.ttk as ttk
+import sqlite3 as db 
+import os as os
 
 global ee2 , ee3 
+""  '' ''  ''
+def Create_Database( e2 ):
+    data_base_name = StringVar()
+    data_base_name = e2.get()
+    os.environ['SQLITE_LOG'] = '3'
+    if not os.path.exists( "Databases" ):
+        os.makedirs( "Databases" )
+    else:
+        pass
+    Install_path=os.getcwd()
+    os.environ['SQLITE_LOGFILE'] = Install_path  + 'log.txt'
+    
+    con = db.connect(Install_path + "/Databases/" + data_base_name + '.db' )
+    cur = con.cursor()
+    cur.execute( '''CREATE TABLE DTBA ( "time between arrivals" double  , probability double ,
+                    "cummulative probability" double , "random digit assignment" text) ;    
+                    ''' )
+    cur.execute('''CREATE TABLE DST ( "service time" double  , probability double , "cummulative probability" double , "random digit assignment" text) ;''')
+    cur.execute('''CREATE TABLE TBADet ( customer integer , "random digit" text , "time between arrivals" double ) ;''')
+    cur.execute('''CREATE TABLE STDet ( customer integer , "random digit" text , "service time" double ) ;''')
+    cur.execute(''' CREATE TABLE STQP ( customer integer  , "time since last arrival" double , "arrival time" double ,
+                    "service time" double , "time service begins" double , "time customer waits in queue" double , "time service ends" double ,
+                    "time customer spend in system" double , "idle time" double , "queue count" integer ) ;''')
+    cur.execute('''CREATE TABLE Statistics (kir inger);''')
+    con.commit()
+    con.close()
 
 def about_us( w ):
     w.destroy()
@@ -263,7 +291,7 @@ def new_project( w , ee2 , ee3 ) :
     w2.geometry( "%dx%d+%d+%d" % ( 700 , 400 , 450 , 200 ) )
     w2.title("Import Data " )
     w2.resizable(True,True)
-    
+
     l1 = Label( w2 , text="Project Name " , font="tahoma 14 bold" )
     l1.place( x = 10 , y = 10 )
     
@@ -283,6 +311,9 @@ def new_project( w , ee2 , ee3 ) :
     packet_number = IntVar()
     e1 = Entry( w2 , textvariable = packet_number ,  font="tahoma 14 normal "  , bg="white" , fg = "black"  ,width=9  )
     e1.place ( x = 375 , y = 210 )
+    
+    b4 = Button( w2 , text="Create DataBase" , font="tahoma 14 bold" , width=15  , command = lambda : Create_Database(e2) )
+    b4.place( x = 450 , y = 10 )
     
     
     b3 = Button( w2 , text="Confirm" , width=30  , command = lambda : Confirm_New_Project( w2 , e1 ) )
