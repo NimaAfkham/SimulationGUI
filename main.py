@@ -1,22 +1,20 @@
 from tkinter import *
 import tkinter.ttk as ttk
 import sqlite3 as db 
-import os as os
+import os 
 
-global ee2 , ee3 
-""  '' ''  ''
+row_count_of_arrival_time_table_information = 0
+row_count_of_service_time_table_information = 0
+count_of_entry = 0
+
+
 def Create_Database( e2 ):
-    data_base_name = StringVar()
     data_base_name = e2.get()
-    os.environ['SQLITE_LOG'] = '3'
     if not os.path.exists( "Databases" ):
         os.makedirs( "Databases" )
-    else:
-        pass
-    Install_path=os.getcwd()
-    os.environ['SQLITE_LOGFILE'] = Install_path  + 'log.txt'
     
-    con = db.connect(Install_path + "/Databases/" + data_base_name + '.db' )
+    Install_path=os.getcwd()
+    con = db.connect(Install_path + "\Databases\\" + data_base_name + '.db' )
     cur = con.cursor()
     cur.execute( '''CREATE TABLE DTBA ( "time between arrivals" double  , probability double ,
                     "cummulative probability" double , "random digit assignment" text) ;    
@@ -30,15 +28,15 @@ def Create_Database( e2 ):
     cur.execute('''CREATE TABLE Statistics (kir inger);''')
     con.commit()
     con.close()
-
-def about_us( w ):
-    w.destroy()
-    w2 = Tk()
-    w2.geometry( "%dx%d+%d+%d" % ( 800 , 750 , 300 , 50 ) )
-    w2.title("About Us" )
+    print("installed path : "  , Install_path)
+def about_us( Startup_main_window ):
+    Startup_main_window.destroy()
+    About_us_window = Tk()
+    About_us_window.geometry( "%dx%d+%d+%d" % ( 800 , 750 , 300 , 50 ) )
+    About_us_window.title("About Us" )
     
     #Create a Main Frame 
-    main_frame = Frame( w2 )
+    main_frame = Frame( About_us_window )
     main_frame.pack( fill= BOTH , expand = 1 )
     
     #Create a Canvas 
@@ -90,40 +88,46 @@ def about_us( w ):
                     your fingertips, courtesy of these talented developers." \
                     ,font="arial 28 normal"  , bg="white" , fg="black" )
     l1.pack()
-def Arrival_Time_Table_Information( ee2 , ee3 ):
-    
-    list_tba = []
-    list_p = []
-    row_count = 0
+def Arrival_Time_Table_Information( ):
+    global row_count_of_arrival_time_table_information
+    List_of_ATTI_Time_Between_Arrivals = []
+    List_of_ATTI_Probability = []
+    row_count_of_arrival_time_table_information = 0
     
     def import_data_in_atti( e2 , e3 ) :
-        list_tba.append(e2.get())
-        list_p.append(e3.get())
+        List_of_ATTI_Time_Between_Arrivals.append(e2.get())
+        List_of_ATTI_Probability.append(e3.get())
+        
+    def import_data_in_atti_last( e2 , e3 ) :
+        List_of_ATTI_Time_Between_Arrivals.append(e2.get())
+        List_of_ATTI_Probability.append(e3.get())
+        w3.destroy()
+        Confirm_Arrival_Time_Table_Information( List_of_ATTI_Time_Between_Arrivals , List_of_ATTI_Probability   )
+        
     
-    def next_import ( row_count  , w3  , b3 , e2 , e3 , ee2 , ee3 ): 
-        if ( row_count == 0 ) :
-            import_data_in_atti( e2 , e3 )
-        else :
-            import_data_in_atti( ee2 , ee3 )
-        next_row( row_count  , w3  , b3 , e2 , e3 , ee2 , ee3 )
-        print("list tba : " , list_tba )
-        print("list p : " , list_p )
+    def next_import ( w3  , b3 , b4 , e2 , e3  ):
+        global row_count_of_arrival_time_table_information 
+        import_data_in_atti( e2 , e3 )
+        next_row( w3  , b3 , b4 , e2 , e3  )
+        print("list tba : " , List_of_ATTI_Time_Between_Arrivals )
+        print("list p : " , List_of_ATTI_Probability )
         
-    def next_row( row_count , w3 , b3 , e2 , e3 , ee2 , ee3 ):
-        row_count += 1
-        i = 50 + row_count * 50 
-        w3.geometry( "%dx%d+%d+%d" % ( 850  , 100 + i , 300 , 50 ) )
+    def next_row(  w3 , b3 , b4 , e2 , e3  ):
+        global row_count_of_arrival_time_table_information
+        row_count_of_arrival_time_table_information += 1
+        i = 50 + row_count_of_arrival_time_table_information * 50 
+        w3.geometry( "%dx%d+%d+%d" % ( 850  , 120 + i , 300 , 50 ) )
         
-        lextra = Label( w3 , text="Row {}".format(row_count + 1 ) , justify = LEFT , font="tahoma 10 bold" , fg="black"   )
+        lextra = Label( w3 , text="Row {}".format(row_count_of_arrival_time_table_information + 1 ) , justify = LEFT , font="tahoma 10 bold" , fg="black"   )
         lextra.place( x = 10 , y= 10 + i  )
         
         tba = IntVar()
-        ee2 = Entry( w3 , textvariable= tba , font="tahoma 10 normal"  , fg="black" , width=10 ) 
-        ee2.place( x = 100 , y = 10 + i  )
+        e2 = Entry( w3 , textvariable= tba , font="tahoma 10 normal"  , fg="black" , width=10 ) 
+        e2.place( x = 100 , y = 10 + i  )
         
         p = IntVar()
-        ee3 = Entry( w3 , textvariable= p , font="tahoma 10 normal"  , fg="black" , width=10 ) 
-        ee3.place( x = 265 , y = 10 + i)
+        e3 = Entry( w3 , textvariable= p , font="tahoma 10 normal"  , fg="black" , width=10 ) 
+        e3.place( x = 265 , y = 10 + i)
         
         cp = IntVar()
         e4 = Entry( w3 , textvariable= cp , font="tahoma 10 normal"  , fg="black" , width=10 , state=DISABLED ) 
@@ -133,10 +137,14 @@ def Arrival_Time_Table_Information( ee2 , ee3 ):
         e5 = Entry( w3 , textvariable= rda , font="tahoma 10 normal"  , fg="black" , width=10 , state=DISABLED ) 
         e5.place( x = 575 , y = 10 + i )
         
-        b3 = Button( w3 , text="+ Add Row" , width=10  , command= lambda : next_import( row_count  , w3  , b3 , e2 , e3 , ee2 , ee3 ) )
-        b3.place( x = 750 , y = 60 )
+        b4.destroy()
+        b4 = Button( w3 , text="Confirm Data" , width=10  , command= lambda : import_data_in_atti_last( e2 , e3 ) )
+        b4.place( x = 750 , y = 80 + i )
         
-        b4.place( x = 750 , y = 50 + i )
+        b3.destroy()
+        b3 = Button( w3 , text="+ Add Row" , width=10  , command= lambda : next_import( w3  , b3 , b4 , e2 , e3  ) )
+        b3.place( x = 750 , y = 10 + i )
+        
         
     w3 = Tk()
     w3.geometry( "%dx%d+%d+%d" % ( 850 , 150 , 300 , 50 ) )
@@ -153,73 +161,92 @@ def Arrival_Time_Table_Information( ee2 , ee3 ):
     l7 = Label( w3 , text="Row 1 " , justify = LEFT , font="tahoma 10 bold" , fg="black" )
     l7.place( x = 10 , y= 60  )
     
-    tba = IntVar()
+    tba = DoubleVar()
     e2 = Entry( w3 , textvariable= tba , font="tahoma 10 normal"  , fg="black" , width=10 )
     e2.place( x = 100 , y = 60 )
     
-    p = IntVar()
+    p = DoubleVar()
     e3 = Entry( w3 , textvariable= p , font="tahoma 10 normal"  , fg="black" , width=10 )
     e3.place( x = 265 , y = 60 )
     
-    cp = IntVar()
+    cp = DoubleVar()
     e4 = Entry( w3 , textvariable= cp , font="tahoma 10 normal"  , fg="black" , width=10 , state=DISABLED ) 
     e4.place( x = 400 , y = 60 )
     
     
-    rda = IntVar()
+    rda = DoubleVar()
     e5 = Entry( w3 , textvariable= rda , font="tahoma 10 normal"  , fg="black" , width=10 , state=DISABLED ) 
     e5.place( x = 575 , y = 60 )
     
     
-    b3 = Button( w3 , text="+ Add Row" , width=10  , command= lambda : next_import( row_count  , w3  , b3 , e2 , e3 , 0 , 0 ) )
+    b3 = Button( w3 , text="+ Add Row" , width=10  , command= lambda : next_import(  w3  , b3 , b4 , e2 , e3  ) )
     b3.place( x= 750 , y = 60 )
     
-    b4 = Button( w3 , text="Confirm Data" , width=10  , command= lambda : Confirm_Arrival_Time_Table_Information( w3 , list_tba , list_p , e2 , e3 , row_count , ee2 , ee3 ) )
+    b4 = Button( w3 , text="Confirm Data" , width=10  , command= lambda : import_data_in_atti_last( e2 , e3 )  )
     b4.place( x= 750 , y = 100 )
     
     w3.mainloop()
 def Service_Time_Table_Information():
-    list_tba = []
-    list_p = []
-    row_count = 0
-    def next_row( row_count , w4 , b3 ):
-        row_count += 1
-        i = 50 + row_count * 50 
+    global row_count_of_service_time_table_information
+    list_st = []
+    list_pp = []
+    row_count_of_service_time_table_information = 0
+    
+    def import_data_in_atti( e2 , e3 ) :
+        list_st.append(e2.get())
+        list_pp.append(e3.get())
         
-        b3 = Button( w4 , text="+ Add Row" , width=10  , command= lambda : next_row( row_count  , w4  , b3 ) )
-        b3.place( x = 750 , y = 60 )
+    def import_data_in_atti_last( e2 , e3 ) :
+        list_st.append(e2.get())
+        list_pp.append(e3.get())
+        w4.destroy()
+        Confirm_Service_Time_Table_Information( list_st , list_pp   )
         
-        b4.place( x = 750 , y = 50 + i )
+    
+    def next_import ( w4  , b3 , b4 , e2 , e3  ):
+        global row_count_of_service_time_table_information 
+        import_data_in_atti( e2 , e3 )
+        next_row( w4  , b3 , b4 , e2 , e3  )
+        print("list st : " , list_st )
+        print("list pp : " , list_pp )
         
-        w4.geometry( "%dx%d+%d+%d" % ( 850  , 100 + i , 300 , 50 ) )
-            
+    def next_row(  w3 , b3 , b4 , e2 , e3  ):
+        global row_count_of_service_time_table_information
+        row_count_of_service_time_table_information += 1
+        i = 50 + row_count_of_service_time_table_information * 50 
+        w3.geometry( "%dx%d+%d+%d" % ( 850  , 120 + i , 300 , 50 ) )
         
-        lextra = Label( w4 , text="Row {}".format(row_count + 1 ) , justify = LEFT , font="tahoma 10 bold" , fg="black"   )
+        lextra = Label( w4 , text="Row {}".format(row_count_of_service_time_table_information + 1 ) , justify = LEFT , font="tahoma 10 bold" , fg="black"   )
         lextra.place( x = 10 , y= 10 + i  )
         
         tba = IntVar()
         e2 = Entry( w4 , textvariable= tba , font="tahoma 10 normal"  , fg="black" , width=10 ) 
         e2.place( x = 100 , y = 10 + i  )
-        var1 = tba.get()
         
         p = IntVar()
         e3 = Entry( w4 , textvariable= p , font="tahoma 10 normal"  , fg="black" , width=10 ) 
         e3.place( x = 265 , y = 10 + i)
-        var2 = p.get()
         
         cp = IntVar()
-        e3 = Entry( w4 , textvariable= cp , font="tahoma 10 normal"  , fg="black" , width=10 , state=DISABLED ) 
-        e3.place( x = 400 , y = 10  + i)
-        
+        e4 = Entry( w4 , textvariable= cp , font="tahoma 10 normal"  , fg="black" , width=10 , state=DISABLED ) 
+        e4.place( x = 400 , y = 10  + i)
         
         rda = IntVar()
-        e3 = Entry( w4 , textvariable= rda , font="tahoma 10 normal"  , fg="black" , width=10 , state=DISABLED ) 
-        e3.place( x = 575 , y = 10 + i )
+        e5 = Entry( w4 , textvariable= rda , font="tahoma 10 normal"  , fg="black" , width=10 , state=DISABLED ) 
+        e5.place( x = 575 , y = 10 + i )
         
-            
+        b4.destroy()
+        b4 = Button( w4 , text="Confirm Data" , width=10  , command= lambda : import_data_in_atti_last( e2 , e3 ) )
+        b4.place( x = 750 , y = 80 + i )
+        
+        b3.destroy()
+        b3 = Button( w4 , text="+ Add Row" , width=10  , command= lambda : next_import( w3  , b3 , b4 , e2 , e3  ) )
+        b3.place( x = 750 , y = 10 + i )
+        
+        
     w4 = Tk()
     w4.geometry( "%dx%d+%d+%d" % ( 850 , 150 , 300 , 50 ) )
-    w4.title("Arrival Time Table Information " )
+    w4.title("Service Time Table Information " )
     w4.resizable(True,True)
     l3 = Label( w4 , text="Service Time" , justify = CENTER ,  font="tahoma 10 normal" , fg="black" , width=20  )
     l3.place( x = 75 , y = 10  )
@@ -232,112 +259,125 @@ def Service_Time_Table_Information():
     l7 = Label( w4 , text="Row 1 " , justify = LEFT , font="tahoma 10 bold" , fg="black" )
     l7.place( x = 10 , y= 60  )
     
-    var1 = IntVar()
-    var2 = IntVar()
-    var3 = IntVar()
-    var4 = IntVar()
-    
-    tba = IntVar()
+    tba = DoubleVar()
     e2 = Entry( w4 , textvariable= tba , font="tahoma 10 normal"  , fg="black" , width=10 )
     e2.place( x = 100 , y = 60 )
-    var1 = tba.get()
     
-    p = IntVar()
+    p = DoubleVar()
     e3 = Entry( w4 , textvariable= p , font="tahoma 10 normal"  , fg="black" , width=10 )
     e3.place( x = 265 , y = 60 )
-    var2 = p.get()
     
-    cp = IntVar()
-    e3 = Entry( w4 , textvariable= cp , font="tahoma 10 normal"  , fg="black" , width=10 , state=DISABLED ) 
-    e3.place( x = 400 , y = 60 )
-    cp.set( var1 + var2 )
+    cp = DoubleVar()
+    e4 = Entry( w4 , textvariable= cp , font="tahoma 10 normal"  , fg="black" , width=10 , state=DISABLED ) 
+    e4.place( x = 400 , y = 60 )
     
-    rda = IntVar()
-    e3 = Entry( w4 , textvariable= rda , font="tahoma 10 normal"  , fg="black" , width=10 , state=DISABLED ) 
-    e3.place( x = 575 , y = 60 )
-    rda.set( var1 * var2 )
     
-    b3 = Button( w4 , text="+ Add Row" , width=10  , command= lambda : next_row( row_count  , w4 , b3 ) )
+    rda = DoubleVar()
+    e5 = Entry( w4 , textvariable= rda , font="tahoma 10 normal"  , fg="black" , width=10 , state=DISABLED ) 
+    e5.place( x = 575 , y = 60 )
+    
+    
+    b3 = Button( w4 , text="+ Add Row" , width=10  , command= lambda : next_import(  w4  , b3 , b4 , e2 , e3  ) )
     b3.place( x= 750 , y = 60 )
     
-    b4 = Button( w4 , text="Confirm Data" , width=10  , command=Confirm_Service_Time_Table_Information )
+    b4 = Button( w4 , text="Confirm Data" , width=10  , command= lambda : import_data_in_atti_last( e2 , e3 )  )
     b4.place( x= 750 , y = 100 )
     
     w4.mainloop()
-def Confirm_Arrival_Time_Table_Information( w3 , list_tba , list_p , e2 , e3 , row_count , ee2 , ee3 ):
-    
-    if ( row_count == 0 ) :
-        list_tba.append(e2.get())
-        list_p.append(e3.get())
-        print("list tba : " , list_tba )
-        print("list p : " , list_p )
-        w3.destroy()
-    else :
-        list_tba.append(ee2.get())
-        list_p.append(ee3.get())
-        print("list tba : " , list_tba )
-        print("list p : " , list_p )
-        w3.destroy()
-def Confirm_Service_Time_Table_Information():
-    pass
-def Confirm_New_Project( w2 , e1 ) :
-    packet_number = int( e1.get() )
-    print("test is " , packet_number )
-    w2.destroy()
-    startup_menu() 
-def new_project( w , ee2 , ee3 ) :
-    w.destroy()
-    w2 = Tk()
-    w2.geometry( "%dx%d+%d+%d" % ( 700 , 400 , 450 , 200 ) )
-    w2.title("Import Data " )
-    w2.resizable(True,True)
+def Confirm_Arrival_Time_Table_Information(  List_of_ATTI_Time_Between_Arrivals , List_of_ATTI_Probability    ) :
+    global row_count_of_arrival_time_table_information
+    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    cur = con.cursor()
+    for i in range( row_count_of_arrival_time_table_information + 1 ) :
+        cur.execute('''insert into DTBA values ({},{},{},"{}") ;'''.format(List_of_ATTI_Time_Between_Arrivals[i] , List_of_ATTI_Probability[i] , 0 , "0" ) ) 
+    con.commit()
+    con.close()
+def Confirm_Service_Time_Table_Information( list_st , list_pp ) :
+    global row_count_of_service_time_table_information
+    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    cur = con.cursor()
+    for i in range( row_count_of_service_time_table_information + 1 ) :
+        cur.execute('''insert into DST values ({},{},{},"{}") ;'''.format(list_st[i] , list_pp[i] , 0 , "0" ) ) 
+    con.commit()
+    con.close()
+def Confirm_New_Project( New_Project_Window , e1 ) :
+    global count_of_entry
+    count_of_entry = int( e1.get() )
+    if ( count_of_entry == 0  ) : 
+        alert_window_of_new_project_window = Tk()
+        alert_window_of_new_project_window.geometry( "%dx%d+%d+%d" % ( 400 , 100 , 600 , 300 ) )
+        alert_window_of_new_project_window.title("Lack Of Information" )
+        alert_window_of_new_project_window.resizable(False,False)
+        Lable_of_alert_window_of_new_project_window = Label( alert_window_of_new_project_window , text="Please Enter a Valid Counts of Entry" ,
+                                                             font="arial 14 bold" , bg="white" , fg="red" )
+        Lable_of_alert_window_of_new_project_window.pack()
+        Button_of_alert_window_of_new_project_window = Button( alert_window_of_new_project_window , text="OK" ,
+                                                                font="arial 14 bold" , bg="white" , fg="black" , command= lambda : alert_window_of_new_project_window.destroy() )
+        Button_of_alert_window_of_new_project_window.pack()
+    else : 
+        con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+        cur = con.cursor()
+        for i in range( count_of_entry ) :
+            cur.execute('''insert into TBADet values ({},"{}",{}) ;'''.format( i + 1 , "0" , 0.0  ) )
+            cur.execute('''insert into STDet values ({},"{}",{}) ;'''.format( i + 1 , "0" , 0.0  ) )
+            cur.execute('''insert into STQP values ({},{},{},{},{},{},{},{},{},{}) ;'''.format( i + 1 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ) ) 
+        con.commit()
+        con.close()
+        New_Project_Window.destroy()
+        startup_menu() 
+def new_project( Startup_main_window  ): 
+    Startup_main_window.destroy()
+    New_Project_Window = Tk()
+    New_Project_Window.geometry( "%dx%d+%d+%d" % ( 700 , 400 , 450 , 200 ) )
+    New_Project_Window.title("Import Data " )
+    New_Project_Window.resizable(True,True)
 
-    l1 = Label( w2 , text="Project Name " , font="tahoma 14 bold" )
+    l1 = Label( New_Project_Window , text="Project Name " , font="tahoma 14 bold" )
     l1.place( x = 10 , y = 10 )
     
     project_name = StringVar()
-    e2 = Entry( w2 , textvariable = project_name , font="tahoma 14 normal"  , fg="black" , width=20 )
+    e2 = Entry( New_Project_Window , textvariable = project_name , font="tahoma 14 normal"  , fg="black" , width=20 )
     e2.place( x = 150 , y = 10 )
     
-    b1 = Button( w2 , text="Arrival Time Table Information " , width=30  , command= lambda : Arrival_Time_Table_Information( ee2 , ee3 ) )
+    b1 = Button( New_Project_Window , text="Arrival Time Table Information " , width=30  , command=Arrival_Time_Table_Information )
     b1.place( x = 100 , y = 80  )
     
-    b2 = Button( w2 , text="Service Time Table Information " , width=30  , command=Service_Time_Table_Information )
+    b2 = Button( New_Project_Window , text="Service Time Table Information " , width=30  , command=Service_Time_Table_Information )
     b2.place( x = 350 , y = 80  )
    
-    l2 = Label( w2 , text="Count of entry : " , font="tahoma 17 bold" )
+    l2 = Label( New_Project_Window , text="Count of entry : " , font="tahoma 17 bold" )
     l2.place( x = 150 , y = 200 )
     
     packet_number = IntVar()
-    e1 = Entry( w2 , textvariable = packet_number ,  font="tahoma 14 normal "  , bg="white" , fg = "black"  ,width=9  )
+    e1 = Entry( New_Project_Window , textvariable = packet_number ,  font="tahoma 14 normal "  , bg="white" , fg = "black"  ,width=9  )
     e1.place ( x = 375 , y = 210 )
     
-    b4 = Button( w2 , text="Create DataBase" , font="tahoma 14 bold" , width=15  , command = lambda : Create_Database(e2) )
+    b4 = Button( New_Project_Window , text="Create DataBase" , font="tahoma 14 bold" , width=15  , command = lambda : Create_Database(e2) )
     b4.place( x = 450 , y = 10 )
     
     
-    b3 = Button( w2 , text="Confirm" , width=30  , command = lambda : Confirm_New_Project( w2 , e1 ) )
+    b3 = Button( New_Project_Window , text="Confirm" , width=30  , command = lambda : Confirm_New_Project( New_Project_Window , e1 ) )
     b3.place( x = 450 , y = 350 )
     
-    w2.mainloop()
-def startup_menu( ee2 , ee3 ):
-    w = Tk()
-    w.geometry( "%dx%d+%d+%d" % ( 650 , 650 , 100 , 100 ) )
-    w.title("Single Server Simulation" )
-    w.resizable(False,False)
-    x = Menu(w)
-    w.configure(menu=x)
+    New_Project_Window.mainloop()
+def startup_menu(   ):
+    Startup_main_window = Tk()
+    Startup_main_window.geometry( "%dx%d+%d+%d" % ( 650 , 650 , 100 , 100 ) )
+    Startup_main_window.title("Single Server Simulation" )
+    Startup_main_window.resizable(False,False)
+    x = Menu(Startup_main_window)
+    Startup_main_window.configure(menu=x)
     fv = Menu(x)
     fr = Menu(x) 
     fx = Menu(x)
-    x.add_cascade(label="File",menu=fv)
-    x.add_cascade(label="Project",menu=fr)
+    x.add_cascade(label="File",menu=fv )
+    x.add_cascade(label="Project",menu=fr )
     x.add_cascade(label="About Us ",menu=fx)
-    fv.add_command(label="New Project" , command=lambda : new_project( w , ee2 , ee3 ) ) 
-    fv.add_command(label="Exit" , command=w.destroy )
+    fv.add_command(label="New Project" , command=lambda : new_project( Startup_main_window ) ) 
+    fv.add_command(label="Exit" , command=Startup_main_window.destroy )
     fr.add_command(label="Show Tables")
     fr.add_command(label="Show Charts")
     fr.add_command(label="Show Statistics")
-    fx.add_command(label="About Us",command=lambda : about_us( w ) )
-    w.mainloop()
-startup_menu( 0 , 0 )
+    fx.add_command(label="About Us",command=lambda : about_us( Startup_main_window ) )
+    Startup_main_window.mainloop()
+startup_menu( )
