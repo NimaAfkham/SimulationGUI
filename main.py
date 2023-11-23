@@ -13,6 +13,8 @@ List_of_STTI_Service_Time = []
 List_of_STTI_Probability = []
 List_of_ATTI_Random_Digit_Lower_Limit = []
 List_of_ATTI_Random_Digit_Upper_Limit = []
+List_of_STTI_Random_Digit_Lower_Limit = []
+List_of_STTI_Random_Digit_Upper_Limit = []
 count_of_entry = 0
 tedad_ashar_atti = 0
 tedad_ashar_stti = 0
@@ -72,9 +74,9 @@ def Service_Time_Table_Information_Processing():
     global List_of_STTI_Service_Time 
     global List_of_STTI_Probability 
     global tedad_ashar_stti
+    global List_of_STTI_Random_Digit_Lower_Limit 
+    global List_of_STTI_Random_Digit_Upper_Limit 
     List_of_STTI_Cummulative_Probability = []
-    List_of_STTI_Random_Digit_Lower_Limit = []
-    List_of_STTI_Random_Digit_Upper_Limit = []
     
     List_of_STTI_Cummulative_Probability.append( float(List_of_STTI_Probability[0]) )
     for i in range(1 , len(List_of_STTI_Probability)) :
@@ -133,6 +135,25 @@ def Time_Between_Arrivals_Determination_Processing() :
     
     con.commit()
     con.close() 
+
+def stdet():
+    global List_of_STTI_Random_Digit_Lower_Limit 
+    global List_of_STTI_Random_Digit_Upper_Limit
+    stdet_rand_digit=[]
+    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    cur = con.cursor()
+    for i in range( count_of_entry ) : 
+        stdet_rand_digit.append(random.randrange(int(10 ** (tedad_ashar_stti - 1)) , int( 10 ** tedad_ashar_stti ) ))
+        cur.execute('''update STDet set "random digit" = {} where customer = {} ;'''.format( stdet_rand_digit[i]  , i + 1 ) ) 
+        x = stdet_rand_digit[i]
+        for j in range( len(List_of_STTI_Service_Time) ) :
+            if x in range( int(List_of_STTI_Random_Digit_Lower_Limit[j]) , int(List_of_STTI_Random_Digit_Upper_Limit[j])  ):
+                y = List_of_STTI_Service_Time[j]
+            
+        cur.execute('''update STDet set "service time" = {} where customer = {} ;'''.format( y , i + 1 ) )
+    
+    con.commit()
+    con.close()
 #/Processing 
 
 #Importing Data
@@ -476,6 +497,7 @@ def Confirm_New_Project( New_Project_Window , e1 ) :
         con.commit()
         con.close()
         Time_Between_Arrivals_Determination_Processing()
+        stdet()
         New_Project_Window.destroy()
         startup_menu() 
 def new_project( Startup_main_window  ): 
