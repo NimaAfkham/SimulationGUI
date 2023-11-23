@@ -2,12 +2,126 @@ from tkinter import *
 import tkinter.ttk as ttk
 import sqlite3 as db 
 import os 
+import random
 
+#global variables
 row_count_of_arrival_time_table_information = 0
 row_count_of_service_time_table_information = 0
+List_of_ATTI_Time_Between_Arrivals = []
+List_of_ATTI_Probability = []
+List_of_STTI_Service_Time = []
+List_of_STTI_Probability = []
 count_of_entry = 0
+tedad_ashar_atti=0
+tedad_ashar_stti=0
+#/global variables
 
 
+#Processing 
+def Arrival_Time_Table_Information_Processing():
+    global row_count_of_arrival_time_table_information
+    global List_of_ATTI_Time_Between_Arrivals 
+    global List_of_ATTI_Probability 
+    global tedad_ashar_atti
+    List_of_ATTI_Cummulative_Probability = []
+    List_of_ATTI_Random_Digit_Lower_Limit = []
+    List_of_ATTI_Random_Digit_Upper_Limit = []
+    
+    List_of_ATTI_Cummulative_Probability.append( float(List_of_ATTI_Probability[0]) )
+    for i in range(1 , len(List_of_ATTI_Probability)) :
+        List_of_ATTI_Cummulative_Probability.append(float(List_of_ATTI_Probability[i]) + List_of_ATTI_Cummulative_Probability[i - 1])
+    
+    minimum = 1.1 
+    for i in range(len(List_of_ATTI_Time_Between_Arrivals)) :
+    
+        if ( float(List_of_ATTI_Probability[i]) < minimum ):
+        
+            minimum = float(List_of_ATTI_Probability[i])
+
+    tedad_ashar = 0     
+    for i in range(1,7) : 
+        if ( minimum * 10 ** i - int(minimum * 10 ** i ) > 0 ) :
+            tedad_ashar += 1 
+        else :
+            break
+    tedad_ashar += 1 
+    
+    tedad_ashar_atti=tedad_ashar
+    
+    List_of_ATTI_Random_Digit_Lower_Limit.append("1")
+    List_of_ATTI_Random_Digit_Upper_Limit.append( List_of_ATTI_Cummulative_Probability[0] * 10 ** tedad_ashar )
+    for i in range( 1 , len(List_of_ATTI_Time_Between_Arrivals) ) :
+        List_of_ATTI_Random_Digit_Upper_Limit.append( List_of_ATTI_Cummulative_Probability[i] * 10 ** tedad_ashar )
+        List_of_ATTI_Random_Digit_Lower_Limit.append( List_of_ATTI_Random_Digit_Upper_Limit[i-1] + 1 )
+        
+    
+    
+    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    cur = con.cursor()
+    for i in range( len(List_of_ATTI_Time_Between_Arrivals) ) : 
+        cur.execute('''update DTBA set "cummulative probability" = {} where "time between arrivals" = "{}" ;'''.format( List_of_ATTI_Cummulative_Probability[i] , List_of_ATTI_Time_Between_Arrivals[i] ) ) 
+    for i in range( len(List_of_ATTI_Time_Between_Arrivals) ) : 
+        cur.execute('''update DTBA set "random digit assignment" = "{}" where "time between arrivals" = "{}" ;'''.format( str(List_of_ATTI_Random_Digit_Lower_Limit[i]) + "_" + str(List_of_ATTI_Random_Digit_Upper_Limit[i]) , List_of_ATTI_Time_Between_Arrivals[i] ) )
+    con.commit()
+    con.close() 
+    
+def Service_Time_Table_Information_Processing():
+    global row_count_of_service_time_table_information
+    global List_of_STTI_Service_Time 
+    global List_of_STTI_Probability 
+    global tedad_ashar_stti
+    List_of_STTI_Cummulative_Probability = []
+    List_of_STTI_Random_Digit_Lower_Limit = []
+    List_of_STTI_Random_Digit_Upper_Limit = []
+    
+    List_of_STTI_Cummulative_Probability.append( float(List_of_STTI_Probability[0]) )
+    for i in range(1 , len(List_of_STTI_Probability)) :
+        List_of_STTI_Cummulative_Probability.append(float(List_of_STTI_Probability[i]) + List_of_STTI_Cummulative_Probability[i - 1])
+    
+    minimum = 1.1 
+    for i in range(len(List_of_STTI_Service_Time)) :
+    
+        if ( float(List_of_STTI_Probability[i]) < minimum ):
+        
+            minimum = float(List_of_STTI_Probability[i])
+
+    tedad_ashar = 0     
+    for i in range(1,7) : 
+        if ( minimum * 10 ** i - int(minimum * 10 ** i ) > 0 ) :
+            tedad_ashar += 1 
+        else :
+            break
+    tedad_ashar += 1
+    tedad_ashar_stti=tedad_ashar
+    
+    List_of_STTI_Random_Digit_Lower_Limit.append("1")
+    List_of_STTI_Random_Digit_Upper_Limit.append( List_of_STTI_Cummulative_Probability[0] * 10 ** tedad_ashar )
+    for i in range( 1 , len(List_of_STTI_Service_Time) ) :
+        List_of_STTI_Random_Digit_Upper_Limit.append( List_of_STTI_Cummulative_Probability[i] * 10 ** tedad_ashar )
+        List_of_STTI_Random_Digit_Lower_Limit.append( List_of_STTI_Random_Digit_Upper_Limit[i-1] + 1 )
+        
+    
+    
+    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    cur = con.cursor()
+    for i in range( len(List_of_STTI_Service_Time) ) : 
+        cur.execute('''update DST set "cummulative probability" = {} where "service time" = "{}" ;'''.format( List_of_STTI_Cummulative_Probability[i] , List_of_STTI_Service_Time[i] ) ) 
+    for i in range( len(List_of_STTI_Service_Time) ) : 
+        cur.execute('''update DST set "random digit assignment" = "{}" where "service time" = "{}" ;'''.format( str(List_of_STTI_Random_Digit_Lower_Limit[i]) + "_" + str(List_of_STTI_Random_Digit_Upper_Limit[i]) , List_of_STTI_Service_Time[i] ) )
+    con.commit()
+    con.close()
+    
+def tbadet() :
+    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    cur = con.cursor()
+    for i in range( count_of_entry ) : 
+        cur.execute('''update TBADet set "random digit" = "{}" where customer = {} ;'''.format( str(random.randrange( int(10 ** (tedad_ashar_atti - 1)) , int(10 ** (tedad_ashar_atti )))) , i + 1 ) ) 
+    
+    con.commit()
+    con.close() 
+#/Processing 
+
+#Importing Data
 def Create_Database( e2 ):
     data_base_name = e2.get()
     if not os.path.exists( "Databases" ):
@@ -88,25 +202,33 @@ def about_us( Startup_main_window ):
                     your fingertips, courtesy of these talented developers." \
                     ,font="arial 28 normal"  , bg="white" , fg="black" )
     l1.pack()
-def Arrival_Time_Table_Information( ):
+def Arrival_Time_Table_Information():
     global row_count_of_arrival_time_table_information
-    List_of_ATTI_Time_Between_Arrivals = []
-    List_of_ATTI_Probability = []
+    global List_of_ATTI_Time_Between_Arrivals 
+    global List_of_ATTI_Probability 
     row_count_of_arrival_time_table_information = 0
     
     def import_data_in_atti( e2 , e3 ) :
+        global row_count_of_arrival_time_table_information
+        global List_of_ATTI_Time_Between_Arrivals 
+        global List_of_ATTI_Probability
         List_of_ATTI_Time_Between_Arrivals.append(e2.get())
         List_of_ATTI_Probability.append(e3.get())
         
     def import_data_in_atti_last( e2 , e3 ) :
+        global row_count_of_arrival_time_table_information
+        global List_of_ATTI_Time_Between_Arrivals 
+        global List_of_ATTI_Probability
         List_of_ATTI_Time_Between_Arrivals.append(e2.get())
         List_of_ATTI_Probability.append(e3.get())
         w3.destroy()
-        Confirm_Arrival_Time_Table_Information( List_of_ATTI_Time_Between_Arrivals , List_of_ATTI_Probability   )
+        Confirm_Arrival_Time_Table_Information( )
         
     
     def next_import ( w3  , b3 , b4 , e2 , e3  ):
-        global row_count_of_arrival_time_table_information 
+        global row_count_of_arrival_time_table_information
+        global List_of_ATTI_Time_Between_Arrivals 
+        global List_of_ATTI_Probability
         import_data_in_atti( e2 , e3 )
         next_row( w3  , b3 , b4 , e2 , e3  )
         print("list tba : " , List_of_ATTI_Time_Between_Arrivals )
@@ -114,6 +236,8 @@ def Arrival_Time_Table_Information( ):
         
     def next_row(  w3 , b3 , b4 , e2 , e3  ):
         global row_count_of_arrival_time_table_information
+        global List_of_ATTI_Time_Between_Arrivals 
+        global List_of_ATTI_Probability
         row_count_of_arrival_time_table_information += 1
         i = 50 + row_count_of_arrival_time_table_information * 50 
         w3.geometry( "%dx%d+%d+%d" % ( 850  , 120 + i , 300 , 50 ) )
@@ -188,29 +312,37 @@ def Arrival_Time_Table_Information( ):
     w3.mainloop()
 def Service_Time_Table_Information():
     global row_count_of_service_time_table_information
-    list_st = []
-    list_pp = []
+    global List_of_STTI_Service_Time 
+    global List_of_STTI_Probability 
     row_count_of_service_time_table_information = 0
     
     def import_data_in_atti( e2 , e3 ) :
-        list_st.append(e2.get())
-        list_pp.append(e3.get())
+        global List_of_STTI_Service_Time 
+        global List_of_STTI_Probability
+        List_of_STTI_Service_Time.append(e2.get())
+        List_of_STTI_Probability.append(e3.get())
         
     def import_data_in_atti_last( e2 , e3 ) :
-        list_st.append(e2.get())
-        list_pp.append(e3.get())
+        global List_of_STTI_Service_Time 
+        global List_of_STTI_Probability
+        List_of_STTI_Service_Time.append(e2.get())
+        List_of_STTI_Probability.append(e3.get())
         w4.destroy()
-        Confirm_Service_Time_Table_Information( list_st , list_pp   )
+        Confirm_Service_Time_Table_Information( )
         
     
     def next_import ( w4  , b3 , b4 , e2 , e3  ):
         global row_count_of_service_time_table_information 
+        global List_of_STTI_Service_Time 
+        global List_of_STTI_Probability
         import_data_in_atti( e2 , e3 )
         next_row( w4  , b3 , b4 , e2 , e3  )
-        print("list st : " , list_st )
-        print("list pp : " , list_pp )
+        print("list st : " , List_of_STTI_Service_Time )
+        print("list pp : " , List_of_STTI_Probability )
         
     def next_row(  w3 , b3 , b4 , e2 , e3  ):
+        global List_of_STTI_Service_Time 
+        global List_of_STTI_Probability
         global row_count_of_service_time_table_information
         row_count_of_service_time_table_information += 1
         i = 50 + row_count_of_service_time_table_information * 50 
@@ -284,22 +416,28 @@ def Service_Time_Table_Information():
     b4.place( x= 750 , y = 100 )
     
     w4.mainloop()
-def Confirm_Arrival_Time_Table_Information(  List_of_ATTI_Time_Between_Arrivals , List_of_ATTI_Probability    ) :
+def Confirm_Arrival_Time_Table_Information() :
     global row_count_of_arrival_time_table_information
+    global List_of_ATTI_Time_Between_Arrivals 
+    global List_of_ATTI_Probability 
     con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
     cur = con.cursor()
     for i in range( row_count_of_arrival_time_table_information + 1 ) :
-        cur.execute('''insert into DTBA values ({},{},{},"{}") ;'''.format(List_of_ATTI_Time_Between_Arrivals[i] , List_of_ATTI_Probability[i] , 0 , "0" ) ) 
+        cur.execute('''insert into DTBA values ({},{},{},"{}") ;'''.format(List_of_ATTI_Time_Between_Arrivals[i] , List_of_ATTI_Probability[i] , 'NULL' , '' ) ) 
     con.commit()
     con.close()
-def Confirm_Service_Time_Table_Information( list_st , list_pp ) :
+    Arrival_Time_Table_Information_Processing()
+def Confirm_Service_Time_Table_Information() :
     global row_count_of_service_time_table_information
+    global List_of_STTI_Service_Time 
+    global List_of_STTI_Probability
     con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
     cur = con.cursor()
     for i in range( row_count_of_service_time_table_information + 1 ) :
-        cur.execute('''insert into DST values ({},{},{},"{}") ;'''.format(list_st[i] , list_pp[i] , 0 , "0" ) ) 
+        cur.execute('''insert into DST values ({},{},{},"{}") ;'''.format(List_of_STTI_Service_Time[i] , List_of_STTI_Probability[i] , 'NULL' , 'NULL' ) ) 
     con.commit()
     con.close()
+    Service_Time_Table_Information_Processing()
 def Confirm_New_Project( New_Project_Window , e1 ) :
     global count_of_entry
     count_of_entry = int( e1.get() )
@@ -318,11 +456,12 @@ def Confirm_New_Project( New_Project_Window , e1 ) :
         con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
         cur = con.cursor()
         for i in range( count_of_entry ) :
-            cur.execute('''insert into TBADet values ({},"{}",{}) ;'''.format( i + 1 , "0" , 0.0  ) )
-            cur.execute('''insert into STDet values ({},"{}",{}) ;'''.format( i + 1 , "0" , 0.0  ) )
-            cur.execute('''insert into STQP values ({},{},{},{},{},{},{},{},{},{}) ;'''.format( i + 1 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ) ) 
+            cur.execute('''insert into TBADet values ({},"{}",{}) ;'''.format( i + 1 , '' , 'NULL'  ) )
+            cur.execute('''insert into STDet values ({},"{}",{}) ;'''.format( i + 1 , '' , 'NULL'  ) )
+            cur.execute('''insert into STQP values ({},{},{},{},{},{},{},{},{},{}) ;'''.format( i + 1 , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' ) ) 
         con.commit()
         con.close()
+        tbadet()
         New_Project_Window.destroy()
         startup_menu() 
 def new_project( Startup_main_window  ): 
@@ -360,7 +499,7 @@ def new_project( Startup_main_window  ):
     b3.place( x = 450 , y = 350 )
     
     New_Project_Window.mainloop()
-def startup_menu(   ):
+def startup_menu():
     Startup_main_window = Tk()
     Startup_main_window.geometry( "%dx%d+%d+%d" % ( 650 , 650 , 100 , 100 ) )
     Startup_main_window.title("Single Server Simulation" )
@@ -380,4 +519,5 @@ def startup_menu(   ):
     fr.add_command(label="Show Statistics")
     fx.add_command(label="About Us",command=lambda : about_us( Startup_main_window ) )
     Startup_main_window.mainloop()
-startup_menu( )
+startup_menu()
+
