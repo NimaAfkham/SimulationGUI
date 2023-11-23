@@ -11,9 +11,11 @@ List_of_ATTI_Time_Between_Arrivals = []
 List_of_ATTI_Probability = []
 List_of_STTI_Service_Time = []
 List_of_STTI_Probability = []
+List_of_ATTI_Random_Digit_Lower_Limit = []
+List_of_ATTI_Random_Digit_Upper_Limit = []
 count_of_entry = 0
-tedad_ashar_atti=0
-tedad_ashar_stti=0
+tedad_ashar_atti = 0
+tedad_ashar_stti = 0
 #/global variables
 
 
@@ -23,9 +25,9 @@ def Arrival_Time_Table_Information_Processing():
     global List_of_ATTI_Time_Between_Arrivals 
     global List_of_ATTI_Probability 
     global tedad_ashar_atti
+    global List_of_ATTI_Random_Digit_Lower_Limit 
+    global List_of_ATTI_Random_Digit_Upper_Limit 
     List_of_ATTI_Cummulative_Probability = []
-    List_of_ATTI_Random_Digit_Lower_Limit = []
-    List_of_ATTI_Random_Digit_Upper_Limit = []
     
     List_of_ATTI_Cummulative_Probability.append( float(List_of_ATTI_Probability[0]) )
     for i in range(1 , len(List_of_ATTI_Probability)) :
@@ -111,11 +113,23 @@ def Service_Time_Table_Information_Processing():
     con.commit()
     con.close()
     
-def tbadet() :
+def Time_Between_Arrivals_Determination_Processing() :
+    global List_of_ATTI_Random_Digit_Lower_Limit 
+    global List_of_ATTI_Random_Digit_Upper_Limit
+    tbadet_rand_digit=[]
     con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
     cur = con.cursor()
+    print("tedad ashar 1 : " , tedad_ashar_atti)
+    print("tedad ashar 2 : " , tedad_ashar_stti)
     for i in range( count_of_entry ) : 
-        cur.execute('''update TBADet set "random digit" = "{}" where customer = {} ;'''.format( str(random.randrange( int(10 ** (tedad_ashar_atti - 1)) , int(10 ** (tedad_ashar_atti )))) , i + 1 ) ) 
+        tbadet_rand_digit.append(random.randrange(int(10 ** (tedad_ashar_atti - 1)) , int( 10 ** tedad_ashar_atti ) ))
+        cur.execute('''update TBADet set "random digit" = {} where customer = {} ;'''.format( tbadet_rand_digit[i]  , i + 1 ) ) 
+        x = tbadet_rand_digit[i]
+        for j in range( len(List_of_ATTI_Time_Between_Arrivals) ) :
+            if x in range( int(List_of_ATTI_Random_Digit_Lower_Limit[j]) , int(List_of_ATTI_Random_Digit_Upper_Limit[j])  ):
+                y = List_of_ATTI_Time_Between_Arrivals[j]
+            
+        cur.execute('''update TBADet set "time between arrivals" = {} where customer = {} ;'''.format( y , i + 1 ) )
     
     con.commit()
     con.close() 
@@ -134,7 +148,7 @@ def Create_Database( e2 ):
                     "cummulative probability" double , "random digit assignment" text) ;    
                     ''' )
     cur.execute('''CREATE TABLE DST ( "service time" double  , probability double , "cummulative probability" double , "random digit assignment" text) ;''')
-    cur.execute('''CREATE TABLE TBADet ( customer integer , "random digit" text , "time between arrivals" double ) ;''')
+    cur.execute('''CREATE TABLE TBADet ( customer integer , "random digit" integer , "time between arrivals" double ) ;''')
     cur.execute('''CREATE TABLE STDet ( customer integer , "random digit" text , "service time" double ) ;''')
     cur.execute(''' CREATE TABLE STQP ( customer integer  , "time since last arrival" double , "arrival time" double ,
                     "service time" double , "time service begins" double , "time customer waits in queue" double , "time service ends" double ,
@@ -456,12 +470,12 @@ def Confirm_New_Project( New_Project_Window , e1 ) :
         con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
         cur = con.cursor()
         for i in range( count_of_entry ) :
-            cur.execute('''insert into TBADet values ({},"{}",{}) ;'''.format( i + 1 , '' , 'NULL'  ) )
+            cur.execute('''insert into TBADet values ({},{},{}) ;'''.format( i + 1 , 'NULL' , 'NULL'  ) )
             cur.execute('''insert into STDet values ({},"{}",{}) ;'''.format( i + 1 , '' , 'NULL'  ) )
             cur.execute('''insert into STQP values ({},{},{},{},{},{},{},{},{},{}) ;'''.format( i + 1 , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' ) ) 
         con.commit()
         con.close()
-        tbadet()
+        Time_Between_Arrivals_Determination_Processing()
         New_Project_Window.destroy()
         startup_menu() 
 def new_project( Startup_main_window  ): 
