@@ -121,17 +121,19 @@ def Time_Between_Arrivals_Determination_Processing() :
     tbadet_rand_digit=[]
     con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
     cur = con.cursor()
-    print("tedad ashar 1 : " , tedad_ashar_atti)
-    print("tedad ashar 2 : " , tedad_ashar_stti)
     for i in range( count_of_entry ) : 
-        tbadet_rand_digit.append(random.randrange(int(10 ** (tedad_ashar_atti - 1)) , int( 10 ** tedad_ashar_atti ) ))
-        cur.execute('''update TBADet set "random digit" = {} where customer = {} ;'''.format( tbadet_rand_digit[i]  , i + 1 ) ) 
-        x = tbadet_rand_digit[i]
-        for j in range( len(List_of_ATTI_Time_Between_Arrivals) ) :
-            if x in range( int(List_of_ATTI_Random_Digit_Lower_Limit[j]) , int(List_of_ATTI_Random_Digit_Upper_Limit[j])  ):
-                y = List_of_ATTI_Time_Between_Arrivals[j]
-            
-        cur.execute('''update TBADet set "time between arrivals" = {} where customer = {} ;'''.format( y , i + 1 ) )
+        if count_of_entry == 0 :
+            cur.execute('''update TBADet set "random digit" = {} where customer = {} ;'''.format( 'NULL'  , i + 1 ) )
+            cur.execute('''update TBADet set "time between arrivals" = {} where customer = {} ;'''.format( 'NULL' , i + 1 ) )
+        else :
+            tbadet_rand_digit.append(random.randrange(int(10 ** (tedad_ashar_atti - 1)) , int( 10 ** tedad_ashar_atti ) ))
+            cur.execute('''update TBADet set "random digit" = {} where customer = {} ;'''.format( tbadet_rand_digit[i]  , i + 1 ) ) 
+            x = tbadet_rand_digit[i]
+            for j in range( len(List_of_ATTI_Time_Between_Arrivals) ) :
+                if x in range( int(List_of_ATTI_Random_Digit_Lower_Limit[j]) , int(List_of_ATTI_Random_Digit_Upper_Limit[j])  ):
+                    y = List_of_ATTI_Time_Between_Arrivals[j]
+                
+            cur.execute('''update TBADet set "time between arrivals" = {} where customer = {} ;'''.format( y , i + 1 ) )
     
     con.commit()
     con.close() 
@@ -139,6 +141,7 @@ def Time_Between_Arrivals_Determination_Processing() :
 def stdet():
     global List_of_STTI_Random_Digit_Lower_Limit 
     global List_of_STTI_Random_Digit_Upper_Limit
+    global count_of_entry
     stdet_rand_digit=[]
     con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
     cur = con.cursor()
@@ -151,6 +154,58 @@ def stdet():
                 y = List_of_STTI_Service_Time[j]
             
         cur.execute('''update STDet set "service time" = {} where customer = {} ;'''.format( y , i + 1 ) )
+    
+    con.commit()
+    con.close()
+
+def stqp():
+    global count_of_entry
+    time_since_last_arrival = []
+    arrival_time = []
+    service_time = []
+    time_service_begins = []
+    time_customer_waits_in_queue = []
+    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    cur = con.cursor()
+    
+    for i in range( count_of_entry  ) :     
+        cur.execute(''' select "time between arrivals" from TBADet ''' )
+        time_since_last_arrival = cur.fetchall()
+    for i in range( count_of_entry ) : 
+        cur.execute('''update STQP set "time since last arrival" = {} where customer = {} ;'''.format( time_since_last_arrival[i][0] , i + 1 ) )
+    
+    arrival_time.append(0)
+    for i in range( 1 , count_of_entry  ) : 
+        arrival_time.append( arrival_time[i-1] + time_since_last_arrival[i][0] )
+    for i in range( count_of_entry ) : 
+        cur.execute('''update STQP set "arrival time" = {} where customer = {} ;'''.format( arrival_time[i] , i + 1 ) )
+    
+    for i in range( count_of_entry  ) :     
+        cur.execute(''' select "service time" from STDet ''' )
+        service_time = cur.fetchall()
+    for i in range( count_of_entry ) : 
+        cur.execute('''update STQP set "service time" = {} where customer = {} ;'''.format( service_time[i][0] , i + 1 ) )
+    
+    time_service_begins.append(0)
+    for i in range( 1 , count_of_entry  ) : 
+        if time_service_begins[i-1] + service_time[i-1][0] > arrival_time[i] : 
+            time_service_begins.append( time_service_begins[i-1] + service_time[i-1][0]  )
+        else : 
+            time_service_begins.append( arrival_time[i] )
+    for i in range( count_of_entry ) : 
+        cur.execute('''update STQP set "time service begins" = {} where customer = {} ;'''.format( time_service_begins[i] , i + 1 ) )
+    
+    for i in range( count_of_entry ) : 
+        cur.execute('''update STQP set "time customer waits in queue" = {} where customer = {} ;'''.format( time_service_begins[i] - arrival_time[i] , i + 1 ) )
+    
+    for i in range( count_of_entry ) : 
+        cur.execute('''update STQP set "time service ends" = {} where customer = {} ;'''.format( time_service_begins[i] + service_time[i][0] , i + 1 ) )
+    
+    for i in range( count_of_entry ) : 
+        if time_service_begins[i] == arrival_time[i] : 
+            cur.execute('''update STQP set "time customer spend in system" = {} where customer = {} ;'''.format( service_time[i][0] , i + 1 ) )
+        else : 
+            cur.execute('''update STQP set "time customer spend in system" = {} where customer = {} ;'''.format( (time_service_begins[i]- arrival_time[i]) + service_time[i][0] , i + 1 ) )
     
     con.commit()
     con.close()
@@ -498,6 +553,7 @@ def Confirm_New_Project( New_Project_Window , e1 ) :
         con.close()
         Time_Between_Arrivals_Determination_Processing()
         stdet()
+        stqp()
         New_Project_Window.destroy()
         startup_menu() 
 def new_project( Startup_main_window  ): 
