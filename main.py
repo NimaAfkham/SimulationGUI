@@ -138,17 +138,17 @@ def Time_Between_Arrivals_Determination_Processing() :
     con.commit()
     con.close() 
 
-def stdet():
+def Service_Time_Determination():
     global List_of_STTI_Random_Digit_Lower_Limit 
     global List_of_STTI_Random_Digit_Upper_Limit
     global count_of_entry
-    stdet_rand_digit=[]
+    Service_Time_Determination_rand_digit=[]
     con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
     cur = con.cursor()
     for i in range( count_of_entry ) : 
-        stdet_rand_digit.append(random.randrange(int(10 ** (tedad_ashar_stti - 1)) , int( 10 ** tedad_ashar_stti ) ))
-        cur.execute('''update STDet set "random digit" = {} where customer = {} ;'''.format( stdet_rand_digit[i]  , i + 1 ) ) 
-        x = stdet_rand_digit[i]
+        Service_Time_Determination_rand_digit.append(random.randrange(int(10 ** (tedad_ashar_stti - 1)) , int( 10 ** tedad_ashar_stti ) ))
+        cur.execute('''update STDet set "random digit" = {} where customer = {} ;'''.format( Service_Time_Determination_rand_digit[i]  , i + 1 ) ) 
+        x = Service_Time_Determination_rand_digit[i]
         for j in range( len(List_of_STTI_Service_Time) ) :
             if x in range( int(List_of_STTI_Random_Digit_Lower_Limit[j]) , int(List_of_STTI_Random_Digit_Upper_Limit[j])  ):
                 y = List_of_STTI_Service_Time[j]
@@ -158,7 +158,7 @@ def stdet():
     con.commit()
     con.close()
 
-def stqp():
+def Single_Server_Queueing_Problem():
     global count_of_entry
     time_since_last_arrival = []
     arrival_time = []
@@ -207,6 +207,39 @@ def stqp():
         else : 
             cur.execute('''update STQP set "time customer spend in system" = {} where customer = {} ;'''.format( (time_service_begins[i]- arrival_time[i]) + service_time[i][0] , i + 1 ) )
     
+    cur.execute('''update STQP set "idle time" = 0 where customer = 1 ;''')
+    for i in range( 1 , count_of_entry ) : 
+        cur.execute('''update STQP set "idle time" = {} where customer = {} ;'''.format( time_service_begins[i] - ( time_service_begins[i-1] + service_time[i-1][0] ) , i + 1 ) )
+    con.commit()
+    con.close()
+
+def Queue_Count_Table():
+    global count_of_entry
+    x , y , z , k = 0 , 0 , 0 , 0
+    sum_of_service_time = []
+    sum_of_time_customer_waits_in_queue = []
+    sum_of_time_customer_spend_in_system = []
+    sum_of_idle_time = []
+    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    cur = con.cursor()
+    cur.execute(''' select "service time" from STQP ''' )
+    sum_of_service_time = cur.fetchall()
+    cur.execute(''' select "time customer waits in queue" from STQP ''' )
+    sum_of_time_customer_waits_in_queue = cur.fetchall()
+    cur.execute(''' select "time customer spend in system" from STQP ''' )
+    sum_of_time_customer_spend_in_system = cur.fetchall()
+    cur.execute(''' select "idle time" from STQP ''' )
+    sum_of_idle_time = cur.fetchall()
+    for i in range( count_of_entry ) :
+        x += sum_of_service_time[i][0]
+        y += sum_of_time_customer_waits_in_queue[i][0]
+        z += sum_of_time_customer_spend_in_system[i][0]
+        k += sum_of_idle_time[i][0]
+    
+    cur.execute('''update Queue Count set "sum of service time" = {} ;'''.format( x ) )
+    cur.execute('''update Queue Count set "sum of time customer waits in queue" = {} ;'''.format( y ) )
+    cur.execute('''update Queue Count set "sum of time customer spend in system" = {} ;'''.format( z ) )
+    cur.execute('''update Queue Count set "sum of idle time" = {} ;'''.format( k ) )
     con.commit()
     con.close()
 #/Processing 
@@ -221,15 +254,17 @@ def Create_Database( e2 ):
     con = db.connect(Install_path + "\Databases\\" + data_base_name + '.db' )
     cur = con.cursor()
     cur.execute( '''CREATE TABLE DTBA ( "time between arrivals" double  , probability double ,
-                    "cummulative probability" double , "random digit assignment" text) ;    
-                    ''' )
+                                        "cummulative probability" double , "random digit assignment" text) ; ''' )
     cur.execute('''CREATE TABLE DST ( "service time" double  , probability double , "cummulative probability" double , "random digit assignment" text) ;''')
     cur.execute('''CREATE TABLE TBADet ( customer integer , "random digit" integer , "time between arrivals" double ) ;''')
     cur.execute('''CREATE TABLE STDet ( customer integer , "random digit" text , "service time" double ) ;''')
-    cur.execute(''' CREATE TABLE STQP ( customer integer  , "time since last arrival" double , "arrival time" double ,
-                    "service time" double , "time service begins" double , "time customer waits in queue" double , "time service ends" double ,
-                    "time customer spend in system" double , "idle time" double , "queue count" integer ) ;''')
-    cur.execute('''CREATE TABLE Statistics (kir inger);''')
+    cur.execute('''CREATE TABLE STQP ( customer integer  , "time since last arrival" double , "arrival time" double ,
+                                        "service time" double , "time service begins" double , "time customer waits in queue" double ,
+                                        "time service ends" double ,"time customer spend in system" double , "idle time" double ) ;''')
+    cur.execute('''CREATE TABLE "Queue Count" ( "sum of service time" integer , "sum of time customer waits in queue" integer , "sum of time customer spend in system" integer ,
+                                                "sum of idle time" integer , "average time between arrivals" double , "average waiting time of who those wait" double ,
+                                                "average time customer spends in the system" double , );''')
+    cur.execute('''CREATE TABLE Statistics ("average waiting time" double , probability double , "probability of idle server" double , "average service time" double) ;''')
     con.commit()
     con.close()
     print("installed path : "  , Install_path)
@@ -552,8 +587,9 @@ def Confirm_New_Project( New_Project_Window , e1 ) :
         con.commit()
         con.close()
         Time_Between_Arrivals_Determination_Processing()
-        stdet()
-        stqp()
+        Service_Time_Determination()
+        Single_Server_Queueing_Problem()
+        Queue_Count_Table()
         New_Project_Window.destroy()
         startup_menu() 
 def new_project( Startup_main_window  ): 
@@ -612,4 +648,3 @@ def startup_menu():
     fx.add_command(label="About Us",command=lambda : about_us( Startup_main_window ) )
     Startup_main_window.mainloop()
 startup_menu()
-
