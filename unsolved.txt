@@ -1,0 +1,6 @@
+1.load databases---->show tables
+#dialog box
+2.database name
+3.scroll bar
+4.charts in matplotlib
+5.intro window
