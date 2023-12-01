@@ -5,6 +5,7 @@ import os
 import random
 
 #global variables
+database_path = ""
 row_count_of_arrival_time_table_information = 0
 row_count_of_service_time_table_information = 0
 List_of_ATTI_Time_Between_Arrivals = []
@@ -60,7 +61,7 @@ def Arrival_Time_Table_Information_Processing():
         
     
     
-    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    con = db.connect( database_path )
     cur = con.cursor()
     for i in range( len(List_of_ATTI_Time_Between_Arrivals) ) : 
         cur.execute('''update DTBA set "cummulative probability" = {} where "time between arrivals" = "{}" ;'''.format( List_of_ATTI_Cummulative_Probability[i] , List_of_ATTI_Time_Between_Arrivals[i] ) ) 
@@ -106,7 +107,7 @@ def Service_Time_Table_Information_Processing():
         
     
     
-    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    con = db.connect(database_path )
     cur = con.cursor()
     for i in range( len(List_of_STTI_Service_Time) ) : 
         cur.execute('''update DST set "cummulative probability" = {} where "service time" = "{}" ;'''.format( List_of_STTI_Cummulative_Probability[i] , List_of_STTI_Service_Time[i] ) ) 
@@ -119,7 +120,7 @@ def Time_Between_Arrivals_Determination_Processing() :
     global List_of_ATTI_Random_Digit_Lower_Limit 
     global List_of_ATTI_Random_Digit_Upper_Limit
     tbadet_rand_digit=[]
-    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    con = db.connect(database_path )
     cur = con.cursor()
     for i in range( count_of_entry ) : 
         if count_of_entry == 0 :
@@ -143,7 +144,7 @@ def Service_Time_Determination():
     global List_of_STTI_Random_Digit_Upper_Limit
     global count_of_entry
     Service_Time_Determination_rand_digit=[]
-    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    con = db.connect(database_path )
     cur = con.cursor()
     for i in range( count_of_entry ) : 
         Service_Time_Determination_rand_digit.append(random.randrange(int(10 ** (tedad_ashar_stti - 1)) , int( 10 ** tedad_ashar_stti ) ))
@@ -164,8 +165,8 @@ def Single_Server_Queueing_Problem():
     arrival_time = []
     service_time = []
     time_service_begins = []
-    time_customer_waits_in_queue = []
-    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    
+    con = db.connect(database_path )
     cur = con.cursor()
     
     for i in range( count_of_entry  ) :     
@@ -207,7 +208,8 @@ def Single_Server_Queueing_Problem():
         else : 
             cur.execute('''update STQP set "time customer spend in system" = {} where customer = {} ;'''.format( (time_service_begins[i]- arrival_time[i]) + service_time[i][0] , i + 1 ) )
     
-    cur.execute('''update STQP set "idle time" = 0 where customer = 1 ;''')
+    #cur.execute('''update STQP set "idle time" = 0 where customer = 1 ;''')
+    cur.execute('''update STQP set "idle time" = 0.0 where customer = 1 ;''')
     for i in range( 1 , count_of_entry ) : 
         cur.execute('''update STQP set "idle time" = {} where customer = {} ;'''.format( time_service_begins[i] - ( time_service_begins[i-1] + service_time[i-1][0] ) , i + 1 ) )
     con.commit()
@@ -215,12 +217,12 @@ def Single_Server_Queueing_Problem():
 
 def Queue_Count_Table():
     global count_of_entry
-    x , y , z , k = 0 , 0 , 0 , 0
+    x , y , z , k = 0.0 , 0.0 , 0.0 , 0.0
     sum_of_service_time = []
     sum_of_time_customer_waits_in_queue = []
     sum_of_time_customer_spend_in_system = []
     sum_of_idle_time = []
-    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    con = db.connect(database_path )
     cur = con.cursor()
     cur.execute(''' select "service time" from STQP ''' )
     sum_of_service_time = cur.fetchall()
@@ -236,16 +238,20 @@ def Queue_Count_Table():
         z += sum_of_time_customer_spend_in_system[i][0]
         k += sum_of_idle_time[i][0]
     
-    cur.execute('''update Queue Count set "sum of service time" = {} ;'''.format( x ) )
-    cur.execute('''update Queue Count set "sum of time customer waits in queue" = {} ;'''.format( y ) )
-    cur.execute('''update Queue Count set "sum of time customer spend in system" = {} ;'''.format( z ) )
-    cur.execute('''update Queue Count set "sum of idle time" = {} ;'''.format( k ) )
+    cur.execute('''update "Queue Count" set "sum of service time" = {} ;'''.format( x ) )
+    cur.execute('''update "Queue Count" set "sum of time customer waits in queue" = {} ;'''.format( y ) )
+    cur.execute('''update "Queue Count" set "sum of time customer spend in system" = {} ;'''.format( z ) )
+    cur.execute('''update "Queue Count" set "sum of idle time" = {} ;'''.format( k ) )
+    #cur.execute('''update "Queue Count" set "average time between arrivals" = {} ;'''.format( m ) )
+    #cur.execute('''update "Queue Count" set "average waiting time in queue" = {} ;'''.format( n ) )
+    #cur.execute('''update "Queue Count" set "average time customer spends in system" = {} ;'''.format( o ) )
     con.commit()
     con.close()
 #/Processing 
 
 #Importing Data
 def Create_Database( e2 ):
+    global database_path
     data_base_name = e2.get()
     if not os.path.exists( "Databases" ):
         os.makedirs( "Databases" )
@@ -261,13 +267,15 @@ def Create_Database( e2 ):
     cur.execute('''CREATE TABLE STQP ( customer integer  , "time since last arrival" double , "arrival time" double ,
                                         "service time" double , "time service begins" double , "time customer waits in queue" double ,
                                         "time service ends" double ,"time customer spend in system" double , "idle time" double ) ;''')
-    cur.execute('''CREATE TABLE "Queue Count" ( "sum of service time" integer , "sum of time customer waits in queue" integer , "sum of time customer spend in system" integer ,
-                                                "sum of idle time" integer , "average time between arrivals" double , "average waiting time of who those wait" double ,
-                                                "average time customer spends in the system" double , );''')
+    cur.execute('''CREATE TABLE "Queue Count" ( "sum of service time" double , "sum of time customer waits in queue" double , "sum of time customer spend in system" double ,
+                                                "sum of idle time" double , "average time between arrivals" double , "average waiting time of who those wait" double ,
+                                                "average time customer spends in the system" double  );''')
     cur.execute('''CREATE TABLE Statistics ("average waiting time" double , probability double , "probability of idle server" double , "average service time" double) ;''')
     con.commit()
     con.close()
-    print("installed path : "  , Install_path)
+    print("install path : " , type(Install_path) )
+    database_path = Install_path + "\Databases\\" + data_base_name + '.db'
+    print("installed path : "  , Install_path )
 def about_us( Startup_main_window ):
     Startup_main_window.destroy()
     About_us_window = Tk()
@@ -545,7 +553,7 @@ def Confirm_Arrival_Time_Table_Information() :
     global row_count_of_arrival_time_table_information
     global List_of_ATTI_Time_Between_Arrivals 
     global List_of_ATTI_Probability 
-    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    con = db.connect(database_path )
     cur = con.cursor()
     for i in range( row_count_of_arrival_time_table_information + 1 ) :
         cur.execute('''insert into DTBA values ({},{},{},"{}") ;'''.format(List_of_ATTI_Time_Between_Arrivals[i] , List_of_ATTI_Probability[i] , 'NULL' , '' ) ) 
@@ -556,7 +564,7 @@ def Confirm_Service_Time_Table_Information() :
     global row_count_of_service_time_table_information
     global List_of_STTI_Service_Time 
     global List_of_STTI_Probability
-    con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+    con = db.connect(database_path )
     cur = con.cursor()
     for i in range( row_count_of_service_time_table_information + 1 ) :
         cur.execute('''insert into DST values ({},{},{},"{}") ;'''.format(List_of_STTI_Service_Time[i] , List_of_STTI_Probability[i] , 'NULL' , 'NULL' ) ) 
@@ -578,12 +586,13 @@ def Confirm_New_Project( New_Project_Window , e1 ) :
                                                                 font="arial 14 bold" , bg="white" , fg="black" , command= lambda : alert_window_of_new_project_window.destroy() )
         Button_of_alert_window_of_new_project_window.pack()
     else : 
-        con = db.connect("c://Users/Nima/Desktop/GUI/Databases/final.db" )
+        con = db.connect( database_path )
         cur = con.cursor()
         for i in range( count_of_entry ) :
             cur.execute('''insert into TBADet values ({},{},{}) ;'''.format( i + 1 , 'NULL' , 'NULL'  ) )
             cur.execute('''insert into STDet values ({},"{}",{}) ;'''.format( i + 1 , '' , 'NULL'  ) )
-            cur.execute('''insert into STQP values ({},{},{},{},{},{},{},{},{},{}) ;'''.format( i + 1 , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' ) ) 
+            cur.execute('''insert into STQP values ({},{},{},{},{},{},{},{},{}) ;'''.format( i + 1 , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL'  ) ) 
+            cur.execute('''insert into "Queue Count" values ({},{},{},{},{},{},{}) ;'''.format( 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL' , 'NULL'  ) )
         con.commit()
         con.close()
         Time_Between_Arrivals_Determination_Processing()
