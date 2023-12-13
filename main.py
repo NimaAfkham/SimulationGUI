@@ -3,6 +3,7 @@ import tkinter.ttk as ttk
 import sqlite3 as db 
 import os 
 import random
+from PIL import ImageTk, Image
 
 #global variables
 database_path = ""
@@ -68,8 +69,7 @@ def Arrival_Time_Table_Information_Processing():
     for i in range( len(List_of_ATTI_Time_Between_Arrivals) ) : 
         cur.execute('''update DTBA set "random digit assignment" = "{}" where "time between arrivals" = "{}" ;'''.format( str(List_of_ATTI_Random_Digit_Lower_Limit[i]) + "_" + str(List_of_ATTI_Random_Digit_Upper_Limit[i]) , List_of_ATTI_Time_Between_Arrivals[i] ) )
     con.commit()
-    con.close() 
-    
+    con.close()     
 def Service_Time_Table_Information_Processing():
     global row_count_of_service_time_table_information
     global List_of_STTI_Service_Time 
@@ -114,8 +114,7 @@ def Service_Time_Table_Information_Processing():
     for i in range( len(List_of_STTI_Service_Time) ) : 
         cur.execute('''update DST set "random digit assignment" = "{}" where "service time" = "{}" ;'''.format( str(List_of_STTI_Random_Digit_Lower_Limit[i]) + "_" + str(List_of_STTI_Random_Digit_Upper_Limit[i]) , List_of_STTI_Service_Time[i] ) )
     con.commit()
-    con.close()
-    
+    con.close()    
 def Time_Between_Arrivals_Determination_Processing() :
     global List_of_ATTI_Random_Digit_Lower_Limit 
     global List_of_ATTI_Random_Digit_Upper_Limit
@@ -138,7 +137,6 @@ def Time_Between_Arrivals_Determination_Processing() :
     
     con.commit()
     con.close() 
-
 def Service_Time_Determination():
     global List_of_STTI_Random_Digit_Lower_Limit 
     global List_of_STTI_Random_Digit_Upper_Limit
@@ -158,7 +156,6 @@ def Service_Time_Determination():
     
     con.commit()
     con.close()
-
 def Single_Server_Queueing_Problem():
     global count_of_entry
     time_since_last_arrival = []
@@ -214,7 +211,6 @@ def Single_Server_Queueing_Problem():
         cur.execute('''update STQP set "idle time" = {} where customer = {} ;'''.format( time_service_begins[i] - ( time_service_begins[i-1] + service_time[i-1][0] ) , i + 1 ) )
     con.commit()
     con.close()
-
 def Queue_Count_Table():
     global count_of_entry
     x , y , z , k = 0.0 , 0.0 , 0.0 , 0.0
@@ -255,7 +251,6 @@ def Create_Database( e2 ):
     data_base_name = e2.get()
     if not os.path.exists( "Databases" ):
         os.makedirs( "Databases" )
-    
     Install_path=os.getcwd()
     con = db.connect(Install_path + "\Databases\\" + data_base_name + '.db' )
     cur = con.cursor()
@@ -273,14 +268,13 @@ def Create_Database( e2 ):
     cur.execute('''CREATE TABLE Statistics ("average waiting time" double , probability double , "probability of idle server" double , "average service time" double) ;''')
     con.commit()
     con.close()
-    print("install path : " , type(Install_path) )
     database_path = Install_path + "\Databases\\" + data_base_name + '.db'
-    print("installed path : "  , Install_path )
 def about_us( Startup_main_window ):
     Startup_main_window.destroy()
     About_us_window = Tk()
     About_us_window.geometry( "%dx%d+%d+%d" % ( 800 , 750 , 300 , 50 ) )
     About_us_window.title("About Us" )
+    About_us_window.iconbitmap('icon.ico')
     
     #Create a Main Frame 
     main_frame = Frame( About_us_window )
@@ -406,7 +400,8 @@ def Arrival_Time_Table_Information():
     w3 = Tk()
     w3.geometry( "%dx%d+%d+%d" % ( 850 , 150 , 300 , 50 ) )
     w3.title("Arrival Time Table Information " )
-    w3.resizable(True,True)
+    w3.resizable(False,False)
+    w3.iconbitmap('icon.ico')
     l3 = Label( w3 , text="Time Between Arrivals" , justify = CENTER ,  font="tahoma 10 normal" , fg="black" , width=20  )
     l3.place( x = 75 , y = 10  )
     l4 = Label( w3 , text="Probability" , justify = CENTER , font="tahoma 10 normal" , fg="black" , width=20  )
@@ -512,7 +507,8 @@ def Service_Time_Table_Information():
     w4 = Tk()
     w4.geometry( "%dx%d+%d+%d" % ( 850 , 150 , 300 , 50 ) )
     w4.title("Service Time Table Information " )
-    w4.resizable(True,True)
+    w4.resizable(False,False)
+    w4.iconbitmap('icon.ico')
     l3 = Label( w4 , text="Service Time" , justify = CENTER ,  font="tahoma 10 normal" , fg="black" , width=20  )
     l3.place( x = 75 , y = 10  )
     l4 = Label( w4 , text="Probability" , justify = CENTER , font="tahoma 10 normal" , fg="black" , width=20  )
@@ -606,7 +602,8 @@ def new_project( Startup_main_window  ):
     New_Project_Window = Tk()
     New_Project_Window.geometry( "%dx%d+%d+%d" % ( 700 , 400 , 450 , 200 ) )
     New_Project_Window.title("Import Data " )
-    New_Project_Window.resizable(True,True)
+    New_Project_Window.resizable(False,False)
+    New_Project_Window.iconbitmap('icon.ico')
 
     l1 = Label( New_Project_Window , text="Project Name " , font="tahoma 14 bold" )
     l1.place( x = 10 , y = 10 )
@@ -638,9 +635,12 @@ def new_project( Startup_main_window  ):
     New_Project_Window.mainloop()
 def startup_menu():
     Startup_main_window = Tk()
-    Startup_main_window.geometry( "%dx%d+%d+%d" % ( 650 , 650 , 100 , 100 ) )
+    Startup_main_window.geometry( "%dx%d+%d+%d" % ( 888 , 500 , 100 , 100 ) )
     Startup_main_window.title("Single Server Simulation" )
     Startup_main_window.resizable(False,False)
+    Startup_main_window.iconbitmap('icon.ico')
+    my_img = ImageTk.PhotoImage(Image.open('intro.jpg'))
+    Label(Startup_main_window, image=my_img).pack()
     x = Menu(Startup_main_window)
     Startup_main_window.configure(menu=x)
     fv = Menu(x)
@@ -657,3 +657,4 @@ def startup_menu():
     fx.add_command(label="About Us",command=lambda : about_us( Startup_main_window ) )
     Startup_main_window.mainloop()
 startup_menu()
+#/Importing Data
